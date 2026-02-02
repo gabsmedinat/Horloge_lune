@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horloge par Gabriel Medina</title>
+    <script>
+        const Dessiner = () =>{
+            var OBJCanvas = document.getElementById("horloge");
+            var OBJC2 = OBJCanvas.getContext('2d');
+            const X_centre = OBJCanvas.height/2;
+            const Y_centre = OBJCanvas.width/2;
+            const chiffresRomains = ["XII","I","II","III","IV","V","VI","VII","VIII","IX","X","XI"];
+            const COULEUR = "lavender";
+            const COULEUR_FOND = 'black';
+
+            /* Fond d'écran */
+            OBJC2.fillStyle = COULEUR_FOND;
+            OBJC2.beginPath();
+            OBJC2.rect(0,0,550,550);
+            OBJC2.fill();
+
+            /*Image*/
+            var objImage = new Image();
+            objImage.src = './Assets/pluto.png';
+            objImage.onload = ()=>{
+                //    Image coin Sup-Gauche à 25,25 et une taille de 500 * 500 px
+                OBJC2.drawImage(objImage,25,25,500,500);  
+                /* Cercle intérieur */ 
+                OBJC2.globalCompositeOperation = 'source-over';
+                tracerCercle(OBJC2, COULEUR, X_centre, Y_centre , 200);
+    
+                /* Point au centre */
+                // OBJC2.globalCompositeOperation = 'lighter';
+                tracerCercle(OBJC2, COULEUR, X_centre, Y_centre, 1, 10);
+    
+                tracerChiffresEtGraduations(OBJC2, chiffresRomains, COULEUR, X_centre, Y_centre,225);
+                
+                tracerAiguilles(OBJC2,COULEUR,10,10,0,X_centre,Y_centre,225);
+
+                heureDigitale(OBJC2,OBJCanvas,COULEUR,"10","10","00");
+                affichageDate(OBJC2,OBJCanvas,COULEUR,"10","10","00");
+            }
+
+            
+        }
+
+        const tracerCercle = (contexteCanvas, strCouleur, xCentre, yCentre, rayon, intEpaisseur)=>{
+            contexteCanvas.strokeStyle = strCouleur;
+            contexteCanvas.lineWidth = intEpaisseur? intEpaisseur: 1 ;
+            contexteCanvas.beginPath();
+            contexteCanvas.arc(xCentre , yCentre, rayon, 0, 2 * Math.PI, false);
+            contexteCanvas.stroke();
+        }
+
+        const affichageDate =(contexteCanvas, canvas, strCouleur, strJour, strMois, strAnnee) =>{
+            contexteCanvas.save();
+            var strTexte = `${strJour}/${strMois}/${strAnnee}`;
+
+            contexteCanvas.beginPath();
+            contexteCanvas.translate(canvas.height/2, 1*canvas.width/3 -50 + 20);
+            contexteCanvas.strokeStyle = strCouleur;
+            contexteCanvas.fillStyle = strCouleur;
+            contexteCanvas.font = '20pt Arial';
+            contexteCanvas.textAlign = 'center';
+            contexteCanvas.textBaseline = 'middle';
+            contexteCanvas.fillText(strTexte, 0, 0);
+            contexteCanvas.stroke();
+            
+            contexteCanvas.beginPath();
+            contexteCanvas.fillStyle = strCouleur;
+            contexteCanvas.lineWidth = 2;
+            var textSize = contexteCanvas.measureText(strTexte);
+            contexteCanvas.rect(-textSize.width/2-5,-textSize.fontBoundingBoxDescent-7,textSize.width+2+7,2*textSize.fontBoundingBoxDescent+7);
+            contexteCanvas.stroke();
+            
+            contexteCanvas.restore();
+        }
+
+        const heureDigitale = (contexteCanvas, canvas, strCouleur, strHeures, strMinutes, strSecondes) =>{
+            contexteCanvas.save();
+            var strTexte = `${strHeures}:${strMinutes}:${strSecondes}`;
+
+            contexteCanvas.beginPath();
+            contexteCanvas.translate(canvas.height/2, 2*canvas.width/3 + 20);
+            contexteCanvas.strokeStyle = strCouleur;
+            contexteCanvas.fillStyle = strCouleur;
+            contexteCanvas.font = '20pt Arial';
+            contexteCanvas.textAlign = 'center';
+            contexteCanvas.textBaseline = 'middle';
+            contexteCanvas.fillText(strTexte, 0, 0);
+            contexteCanvas.stroke();
+            
+            contexteCanvas.beginPath();
+            contexteCanvas.fillStyle = strCouleur;
+            contexteCanvas.lineWidth = 2;
+            var textSize = contexteCanvas.measureText(strTexte);
+            contexteCanvas.rect(-textSize.width/2,-textSize.fontBoundingBoxDescent-2,textSize.width+2,2*textSize.fontBoundingBoxDescent);
+            contexteCanvas.stroke();
+            
+            contexteCanvas.restore();
+        }
+
+        const tracerAiguilles = (contexteCanvas, strCouleur, intHeure, intMinute, intSeconde, xCentre, yCentre, rayonHorloge) =>{
+            
+            // Début des itérations
+            contexteCanvas.save();
+            contexteCanvas.translate(xCentre,yCentre);
+            
+            // Aiguille heures 
+            contexteCanvas.rotate(-5*Math.PI/6);
+            contexteCanvas.fillStyle = strCouleur;
+            contexteCanvas.beginPath();
+            contexteCanvas.rect(-10,-3,2*rayonHorloge/3+5,6);
+            contexteCanvas.fill();
+
+            // Aiguille minutes
+            contexteCanvas.rotate(4*Math.PI/6);
+            contexteCanvas.fillStyle = strCouleur;
+            contexteCanvas.beginPath();
+            contexteCanvas.rect(-20,-2,rayonHorloge,4);
+            contexteCanvas.fill();
+
+            // Aiguille des secondes
+            contexteCanvas.rotate(-2*Math.PI/6);
+            contexteCanvas.fillStyle = strCouleur;
+            contexteCanvas.beginPath();
+            contexteCanvas.rect(-20,-1,rayonHorloge,2);
+            contexteCanvas.fill();
+
+
+            contexteCanvas.restore();
+
+        }
+
+        const tracerChiffresEtGraduations = (contexteCanvas, tableauChiffres, strCouleur, xCentre, yCentre, rayon)=> {
+        
+            // Translation du contexte au centre du cercle
+            contexteCanvas.save()
+            contexteCanvas.translate(xCentre,yCentre);
+            contexteCanvas.rotate(-Math.PI/2);
+            for(let i=0 ; i<60; i++){
+                if(i%5==0){
+                    contexteCanvas.strokeStyle = strCouleur;
+                    contexteCanvas.beginPath();
+                    contexteCanvas.save(); // Je veux conserver le contexte de la fonction
+
+                    /* Définition d'un nouveau contexte local de la boucle For */
+                    contexteCanvas.translate(rayon-5,0);
+                    contexteCanvas.rotate(Math.PI/2);
+                    var numRomain = tableauChiffres[i/5];
+                    contexteCanvas.fillStyle = strCouleur;
+                    contexteCanvas.font = '18pt Arial';
+                    contexteCanvas.textAlign = 'center';
+                    contexteCanvas.fillText(numRomain,0,0);
+                    contexteCanvas.stroke();
+    
+                    contexteCanvas.restore();
+                    contexteCanvas.save();
+    
+                    contexteCanvas.beginPath();
+                    contexteCanvas.fillStyle = strCouleur;
+                    contexteCanvas.translate(rayon-20,0);
+                    contexteCanvas.rotate(Math.PI/2);
+                    contexteCanvas.rect(0,0,5,8);
+                    contexteCanvas.fill();
+                    
+                    contexteCanvas.restore();
+                    
+                }else{
+                    contexteCanvas.save();
+    
+                    contexteCanvas.beginPath();
+                    contexteCanvas.fillStyle = strCouleur;
+                    contexteCanvas.translate(rayon-20,0);
+                    contexteCanvas.rotate(Math.PI/2);
+                    contexteCanvas.rect(0,0,1,4);
+                    contexteCanvas.fill();
+                    
+                    contexteCanvas.restore();
+                }
+                contexteCanvas.rotate(Math.PI / 30);
+            }
+            contexteCanvas.restore();
+        }
+    </script>
+</head>
+<body onload="Dessiner()" >
+    <canvas id="horloge" width="550" height="550"></canvas>    
+</body>
+</html>
