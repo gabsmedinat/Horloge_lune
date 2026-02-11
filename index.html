@@ -1,51 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horloge par Gabriel Medina</title>
-    <script>
-        const Dessiner = () =>{
-            var OBJCanvas = document.getElementById("horloge");
-            var OBJC2 = OBJCanvas.getContext('2d');
-            const X_centre = OBJCanvas.height/2;
-            const Y_centre = OBJCanvas.width/2;
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="description" content="Animation horloge 2017" />
+  <title>Animation d'une horloge analogique par Gabriel Medina</title>
+  <link rel="stylesheet" type="text/css" href="StyleLabo5.css" />  
+ 
+  <!-- Code JavaScript local -->
+  <script type="text/javascript">
+      var objcanvas = null;
+      var objc2d = null;
+	  var objCycleAnimation = null;
+      var objImage = new Image();
+      let annee, mois, jour, heure, minute, seconde, milliseconde;
+      
+      function initAnimation() {
+        objcanvas = document.getElementById('monCanvas');
+	    objc2d = objcanvas.getContext('2d');
+        objImage.src = './Assets/luneJaune.png';  
+        calculerTemps(annee,mois,jour,heure,minute,seconde)
+        
+	    dessinerHorloge(); // Dessiner une première fois
+	    animer(); 
+      }
+      
+      function animer() {
+        // Requête pour le prochain cycle
+        objCycleAnimation = requestAnimationFrame(animer);
+	
+	    // Le cycle d'animation
+	    effacerDessin();
+	    mettreAJourAnimation();
+	    dessinerHorloge();
+      }
+      
+      function effacerDessin() {
+	    objc2d.clearRect(0,0, objcanvas.width, objcanvas.height); 
+      }
+
+      function mettreAJourAnimation()
+      {
+		calculerTemps();
+      }
+	
+      function arreterAnimation()
+      {
+	    if (objCycleAnimation != null)
+	        cancelAnimationFrame(objCycleAnimation);	
+		objCycleAnimation = null
+      }
+      
+      function dessinerHorloge() {
+		objc2d.save();
+            const X_centre = objcanvas.height/2;
+            const Y_centre = objcanvas.width/2;
             const chiffresRomains = ["XII","I","II","III","IV","V","VI","VII","VIII","IX","X","XI"];
             const COULEUR = "lavender";
             const COULEUR_FOND = 'black';
 
             /* Fond d'écran */
-            OBJC2.fillStyle = COULEUR_FOND;
-            OBJC2.beginPath();
-            OBJC2.rect(0,0,550,550);
-            OBJC2.fill();
+            objc2d.fillStyle = COULEUR_FOND;
+            objc2d.beginPath();
+            objc2d.rect(0,0,550,550);
+            objc2d.fill();
 
             /*Image*/
-            var objImage = new Image();
-            objImage.src = './Assets/luneJaune.png';
-            objImage.onload = ()=>{
+            
+            // objImage.onload = ()=>{
                 //    Image coin Sup-Gauche à 25,25 et une taille de 500 * 500 px
-                OBJC2.drawImage(objImage,25,25,500,500);  
+                objc2d.drawImage(objImage,25,25,500,500);  
                 /* Cercle intérieur */ 
-                OBJC2.globalCompositeOperation = 'source-over';
-                tracerCercle(OBJC2, COULEUR, X_centre, Y_centre , 200);
+                objc2d.globalCompositeOperation = 'source-over';
+                tracerCercle(objc2d, COULEUR, X_centre, Y_centre , 200);
     
                 /* Point au centre */
-                // OBJC2.globalCompositeOperation = 'lighter';
-                tracerCercle(OBJC2, COULEUR, X_centre, Y_centre, 1, 10);
+                // objc2d.globalCompositeOperation = 'lighter';
+                tracerCercle(objc2d, COULEUR, X_centre, Y_centre, 1, 10);
     
-                tracerChiffresEtGraduations(OBJC2, chiffresRomains, COULEUR, X_centre, Y_centre,225);
+                tracerChiffresEtGraduations(objc2d, chiffresRomains, COULEUR, X_centre, Y_centre,225);
                 
-                tracerAiguilles(OBJC2,COULEUR,10,10,0,X_centre,Y_centre,225);
+                tracerAiguilles(objc2d,COULEUR,10,10,0,X_centre,Y_centre,225);
 
-                heureDigitale(OBJC2,OBJCanvas,COULEUR,"10","10","00");
-                affichageDate(OBJC2,OBJCanvas,COULEUR,"10","10","00");
-            }
+                heureDigitale(objc2d,objcanvas,COULEUR,heure,minute,seconde);
+                affichageDate(objc2d,objcanvas,COULEUR,jour,mois,annee);
+            // }			
+		objc2d.restore();
+      }
 
-            
-        }
-
-        const tracerCercle = (contexteCanvas, strCouleur, xCentre, yCentre, rayon, intEpaisseur)=>{
+      const tracerCercle = (contexteCanvas, strCouleur, xCentre, yCentre, rayon, intEpaisseur)=>{
             contexteCanvas.strokeStyle = strCouleur;
             contexteCanvas.lineWidth = intEpaisseur? intEpaisseur: 1 ;
             contexteCanvas.beginPath();
@@ -105,28 +148,32 @@
             
             // Début des itérations
             contexteCanvas.save();
-            contexteCanvas.translate(xCentre,yCentre);
+            contexteCanvas.translate(xCentre,yCentre);  // CENTRÉ
+            contexteCanvas.rotate(-Math.PI/2)           // VERS 12 (Début)
             
             // Aiguille heures 
-            contexteCanvas.rotate(-5*Math.PI/6);
+            contexteCanvas.save();
+            contexteCanvas.rotate(heure*Math.PI/6+(minute/60)*Math.PI/6);  /// SELON HEURE (RotationHeure + fraction de minute)
             contexteCanvas.fillStyle = strCouleur;
             contexteCanvas.beginPath();
-            contexteCanvas.rect(-10,-3,2*rayonHorloge/3+5,6);
-            contexteCanvas.fill();
+            contexteCanvas.fillRect(-10,-3,2*rayonHorloge/3+5,6);
+            contexteCanvas.restore()
 
             // Aiguille minutes
-            contexteCanvas.rotate(4*Math.PI/6);
+            contexteCanvas.save();
+            contexteCanvas.rotate(minute*Math.PI/30+(seconde/60)*Math.PI/30);      // Rotation minute + fraction seconds
             contexteCanvas.fillStyle = strCouleur;
             contexteCanvas.beginPath();
-            contexteCanvas.rect(-20,-2,rayonHorloge,4);
-            contexteCanvas.fill();
+            contexteCanvas.fillRect(-20,-2,rayonHorloge,4);
+            contexteCanvas.restore()
 
             // Aiguille des secondes
-            contexteCanvas.rotate(-2*Math.PI/6);
+            contexteCanvas.save();
+            contexteCanvas.rotate(seconde*Math.PI/30+(milliseconde/1000)*Math.PI/30);    // Rotation secondes + fraction millisecondes
             contexteCanvas.fillStyle = strCouleur;
             contexteCanvas.beginPath();
-            contexteCanvas.rect(-20,-1,rayonHorloge,2);
-            contexteCanvas.fill();
+            contexteCanvas.fillRect(-20,-1,rayonHorloge,2);
+            contexteCanvas.restore();
 
 
             contexteCanvas.restore();
@@ -183,9 +230,51 @@
             }
             contexteCanvas.restore();
         }
-    </script>
+        
+        const calculerTemps = () => {
+            const maintenant = new Date();
+            annee = maintenant.getFullYear();
+            mois = maintenant.getMonth()<10? "0"+maintenant.getMonth():maintenant.getMonth();
+            jour = maintenant.getDate()<10 ? "0"+maintenant.getDate(): maintenant.getDate();
+            heure = maintenant.getHours()<10 ? "0"+maintenant.getHours(): maintenant.getHours();
+            minute = maintenant.getMinutes()<10 ? "0"+maintenant.getMinutes(): maintenant.getMinutes();
+            seconde = maintenant.getSeconds()<10 ? "0"+maintenant.getSeconds(): maintenant.getSeconds(); 
+            milliseconde = maintenant.getMilliseconds();
+        }
+
+   </script>
 </head>
-<body onload="Dessiner()" >
-    <canvas id="horloge" width="550" height="550"></canvas>    
+
+<body onload="initAnimation()">
+
+    <header class="sTexteCentre sLargeurDiv sEntete">
+        <p> 
+            <span class="sTitreApp">
+                Animation d'une horloge analogique<br />
+            </span> par 
+            <span class="sAuteurApp">
+                Gabriel Medina
+            </span> 
+       </p>
+    </header>
+
+    <main class="sLargeurDiv sCorps">	
+	   <canvas id="monCanvas" width="550" height="550">
+		    Votre navigateur ne supporte pas la balise canvas
+	    </canvas>
+    </main>
+
+    <footer class="sLargeurDiv sPiedDePage">
+        <p>
+            <a href="http://www.cgodin.qc.ca">
+                <img src="logoCGG.jpg" alt="logoCGG" />
+            </a> 
+ 			<a href="http://www.cgodin.qc.ca/programme/techniques-informatique/">
+	           Département d'informatique du Cégep Gérald-Godin
+	        </a> 
+            <br />
+            &copy; 2026
+        </p>
+    </footer>
 </body>
 </html>
