@@ -4,7 +4,7 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="description" content="Animation horloge 2017" />
-  <title>Animation d'une horloge analogique par Gabriel Medina</title>
+  <title>Alarme par Gabriel Medina</title>
   <link rel="stylesheet" type="text/css" href="StyleLabo5.css" />  
  
   <!-- Code JavaScript local -->
@@ -13,14 +13,24 @@
       var objc2d = null;
 	  var objCycleAnimation = null;
       var objImage = new Image();
-      let annee, mois, jour, heure, minute, seconde, milliseconde;
+      var annee, mois, jour, heure, minute, seconde, milliseconde;
+      var anneeAlarme, moisAlarme, jourAlarme, heureAlarme, minuteAlarme, secondeAlarme;
+      var audio;
+      var binAlarme;
+      var cbxAlarme;
+      var heure_et_date;
       
       function initAnimation() {
+        audio = document.getElementById("audioAlarme");
         objcanvas = document.getElementById('monCanvas');
 	    objc2d = objcanvas.getContext('2d');
         objImage.src = './Assets/luneJaune.png';  
         calculerTemps(annee,mois,jour,heure,minute,seconde)
-        
+
+        cbxAlarme = document.getElementById("cboxAlarme");
+        binAlarme = false;
+        cbxAlarme.addEventListener('click', setAlarme)  /// CONTINER ICI
+
 	    dessinerHorloge(); // Dessiner une première fois
 	    animer(); 
       }
@@ -42,6 +52,18 @@
       function mettreAJourAnimation()
       {
 		calculerTemps();
+        if(binAlarme){
+            // if((annee.toString()===anneeAlarme)&&(mois.toString()===moisAlarme)&&(jour.toString()===jourAlarme)&&(heure.toString()===heureAlarme)&&(minute.toString()===minuteAlarme)){
+            var instant = new Date();
+            /*Ce décalage est nécessaire pour l'effet à produire avec le son choisi (10s avant le décollage d'une fusée)*/
+            var decalage = instant.setSeconds(instant.getSeconds() + 12);  
+            
+            if(decalage >= heure_et_date)    {
+                alarme_OnOff();
+                binAlarme = false;
+            }
+
+        }
       }
 	
       function arreterAnimation()
@@ -234,7 +256,7 @@
         const calculerTemps = () => {
             const maintenant = new Date();
             annee = maintenant.getFullYear();
-            mois = maintenant.getMonth()<10? "0"+maintenant.getMonth():maintenant.getMonth();
+            mois = maintenant.getMonth()<10? "0"+(maintenant.getMonth()+1):(maintenant.getMonth()+1);
             jour = maintenant.getDate()<10 ? "0"+maintenant.getDate(): maintenant.getDate();
             heure = maintenant.getHours()<10 ? "0"+maintenant.getHours(): maintenant.getHours();
             minute = maintenant.getMinutes()<10 ? "0"+maintenant.getMinutes(): maintenant.getMinutes();
@@ -242,17 +264,66 @@
             milliseconde = maintenant.getMilliseconds();
         }
 
+        const alarme_OnOff = () => {
+            if(audio.paused){
+                audio.play();
+            }else{
+                audio.pause();
+            }
+        }
+
+        const setAlarme = () => {
+            heure_et_date = new Date(document.getElementById("alarme_heureEtDate").value);
+            binAlarme = true;  
+        }
+
+
+
    </script>
 </head>
 
 <body onload="initAnimation()">
 
+    <header class="sTexteCentre sLargeurDiv sEntete">
+        <p> 
+            <span class="sTitreApp">
+                Alarme<br />
+            </span> par 
+            <span class="sAuteurApp">
+                Gabriel Medina
+            </span> 
+       </p>
+    </header>
+
     <main class="sLargeurDiv sCorps">	
-	   <canvas id="monCanvas" width="550" height="550">
+        <table>
+            <td>
+                <input id="cboxAlarme" type="checkbox" value="binAlarme" name="alarme" >
+                <label for="alarme"><strong>Activer l'alarme : </strong></label>
+            </td>
+            <td>
+                <input type="datetime-local" name="date" id="alarme_heureEtDate">
+            </td>
+            <td>
+                <audio id="audioAlarme" controls loop src="./Assets/94571__timbre__71154__timbre__simulation_of_nasa_rocket_launch_4.wav" ></audio>
+            </td>
+        </table>
+	    <canvas id="monCanvas" width="550" height="550">
 		    Votre navigateur ne supporte pas la balise canvas
 	    </canvas>
     </main>
 
-
+    <footer class="sLargeurDiv sPiedDePage">
+        <p>
+            <a href="http://www.cgodin.qc.ca">
+                <img src="logoCGG.jpg" alt="logoCGG" />
+            </a> 
+ 			<a href="http://www.cgodin.qc.ca/programme/techniques-informatique/">
+	           Département d'informatique du Cégep Gérald-Godin
+	        </a> 
+            <br />
+            &copy; 2026
+        </p>
+    </footer>
 </body>
 </html>
